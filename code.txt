@@ -1,0 +1,38 @@
+library(readr)
+ refine_Sheet1 <- read_csv("C:/Users/dearm/Downloads/refine - Sheet1.csv")
+ View(refine_Sheet1)
+ library(tidyr)
+ library(dplyr)
+library(tidyverse)
+ company<- refine_Sheet1$company
+ #correct typos
+ company<-ifelse(company%in%c("philips","phllips","phillps","fillips","phlips"),"phillips", company)
+ company<-ifelse(company%in%c("ak zo"),"akzo", company)
+ company<-ifelse(company%in%c("unilver"),"unilever", company)
+ #lower all
+ 
+ company2 <-tolower(company)
+ #create new  columns but there has to be a better way to do  this
+ df  <- data.frame(x = c("p.5", "p.43", "x.3", "x.34", "x.12", "p.23", "v.43", "v.12", "x.5", "p.34", "q.5", "q.9", "x.8", "p.56", "v.67", "v.21", "x.45", "v.56", "v.65", "x.21", "p.23", "x.3", "q.4", "q.6", "q.8"))
+df %>% separate(x, c("product code", "product number"))
+
+all_refine<-cbind(company2, new_col,refine_Sheet1)
+ all_refine
+
+all_refine$`Product code / number`= NULL
+all_refine$company= NULL
+
+
+#rename code for category and replace code value
+colnames(all_refine)[colnames(all_refine)=="product code"] <- "product_category"
+
+all_refine<- mutate(all_refine, product_category = ifelse(grepl("p", product_category), "Smartphone", ifelse(grepl("x", product_category), "Laptop", ifelse(grepl("v",product_category),"TV", ifelse(grepl("q", product_category), "Tablet", "other")))))
+#create full  address
+all_refine<- unite(all_refine, full_address,address:country , sep = ",", remove = TRUE)
+
+#create dummy var
+library(psych)
+
+company_code<- dummy.code(all_refine$company2)
+product_dum <- dummy.code(all_refine$product_category)
+all_refine2<- cbind(all_refine, product_dum, company_code)
